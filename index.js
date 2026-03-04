@@ -68,9 +68,15 @@ app.use('/api/register', registerRouter);
 app.use('/api/countries', countriesRouter);
 app.use('/api/products', productsRouter);
 
-app.use(function(req, res, next){
-    if (req.headers.authorization){}
+app.use('/api/message', function(req, res, next){
     try{
+        const authHeader = req.headers.authorization;
+        if(!authHeader){return next();}
+
+        if (!authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({ error: "Invalid token format" });
+        }
+
         const token = req.headers.authorization.slice("Bearer ".length);
         const payload = jwt.verify(token, process.env.SESSION_SECRET);
         (async ()=>{
@@ -84,8 +90,7 @@ app.use(function(req, res, next){
     }catch(error){
         res.status(404).send(error.message)
     }
-})
-app.use('/api/message', messageRouter);
+},messageRouter);
 
 
 
